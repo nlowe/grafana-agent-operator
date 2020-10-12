@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "dependencies": [
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/grafana/agent.git",
+          "subdir": "example/k3d/lib/cortex"
+        }
+      },
+      "version": "60e9cbb63c6bb5ca8fa70b9a774ee969f2c65f85",
+      "sum": "fukdpU36nwJDeBgpd0gGAsVmxXGTYHK9uAGRMTVunhg="
+    },
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/grafana/agent.git",
+          "subdir": "production/tanka/grafana-agent"
+        }
+      },
+      "version": "60e9cbb63c6bb5ca8fa70b9a774ee969f2c65f85",
+      "sum": "bOVci8SJj9v+K6Bee883kV3AJQC2b1/r57OmuCgL3UA="
+    },
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/grafana/jsonnet-libs.git",
+          "subdir": "ksonnet-util"
+        }
+      },
+      "version": "a71896fba31c283c7c5284ef62b2cd018b8ade0c",
+      "sum": "TGgjbv8oGfmMNjfvcgxi2cX9RAJKGZnYGLEhzK2wNjM="
+    },
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/grafana/jsonnet-libs.git",
+          "subdir": "\\ksonnet-util"
+        }
+      },
+      "version": "a71896fba31c283c7c5284ef62b2cd018b8ade0c",
+      "sum": "TGgjbv8oGfmMNjfvcgxi2cX9RAJKGZnYGLEhzK2wNjM="
+    },
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/jsonnet-libs/k8s-alpha.git",
+          "subdir": "1.18"
+        }
+      },
+      "version": "23c8b320e45333d81bdf91e22998747c64e0958b",
+      "sum": "VNitwex4MrT1DnCY8+z2Iqw3rbIRtuiSf4PWYe0K6/w="
+    },
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/ksonnet/ksonnet-lib.git",
+          "subdir": ""
+        }
+      },
+      "version": "0d2f82676817bbf9e4acf6495b2090205f323b9f",
+      "sum": "h28BXZ7+vczxYJ2sCt8JuR9+yznRtU/iA6DCpQUrtEg=",
+      "name": "ksonnet"
+    },
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/ksonnet/ksonnet-lib.git",
+          "subdir": "ksonnet.beta.4"
+        }
+      },
+      "version": "0d2f82676817bbf9e4acf6495b2090205f323b9f",
+      "sum": "ur22hPQq0JAPBxm8hNMcwjumj4MkozDwOKiGZvVMYh4="
+    },
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/prometheus-operator/prometheus-operator.git",
+          "subdir": "jsonnet/prometheus-operator/"
+        }
+      },
+      "version": "d97ba662bc94d64e254e116f3cbf573068ac2d87",
+      "sum": "BaoVE0HT8kIGWlvWqZ2moFOnipwdwJ9AsCjgVh6KekM="
+    }
+  ],
+  "legacyImports": false
+}

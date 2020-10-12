@@ -89,7 +89,7 @@ func NewRootCmd() *cobra.Command {
 
 	flags.Bool("in-cluster", false, "Use the in-cluster token to talk to kubernetes")
 	flags.String("agent-url", "", "The API Endpoint to write instance configuration to")
-	flags.String("remote-write-url", "http://cortex:9009/api/prom/push", "The URL to use for remote-write")
+	flags.String("remote-write-url", "http://cortex.monitoring.svc.cluster.local/api/prom/push", "The URL to use for remote-write")
 	flags.String("remote-write-config", "", "The path to a file containing the remote_write config to use")
 
 	_ = viper.BindPFlags(flags)

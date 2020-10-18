@@ -15,11 +15,31 @@
       "source": {
         "git": {
           "remote": "https://github.com/grafana/agent.git",
+          "subdir": "example/k3d/lib/grafana"
+        }
+      },
+      "version": "b10f02337d5512f9d806f26dcc25b0d316712dd3",
+      "sum": "hsy/YoZsf1LoVQ/N4L4UxQzwig2Lo3r5/mFXYe7CYLk="
+    },
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/grafana/agent.git",
           "subdir": "production/tanka/grafana-agent"
         }
       },
       "version": "60e9cbb63c6bb5ca8fa70b9a774ee969f2c65f85",
       "sum": "bOVci8SJj9v+K6Bee883kV3AJQC2b1/r57OmuCgL3UA="
+    },
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/grafana/cortex-jsonnet.git",
+          "subdir": "cortex-mixin"
+        }
+      },
+      "version": "c20366695a220183dfbaf918257cec2aba233532",
+      "sum": "8V0+36vEWkL9Ju6dnDew/KjAba2Jgu6Z/T7HpyIqNgg="
     },
     {
       "source": {
@@ -35,11 +55,31 @@
       "source": {
         "git": {
           "remote": "https://github.com/grafana/jsonnet-libs.git",
+          "subdir": "\\grafana-builder"
+        }
+      },
+      "version": "b5e45051995755ea373ea67642f8e5f54fcb8dd7",
+      "sum": "mD0zEP9FVFXeag7EaeS5OvUr2A9D6DQhGemoNn6+PLc="
+    },
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/grafana/jsonnet-libs.git",
           "subdir": "\\ksonnet-util"
         }
       },
-      "version": "a71896fba31c283c7c5284ef62b2cd018b8ade0c",
+      "version": "b5e45051995755ea373ea67642f8e5f54fcb8dd7",
       "sum": "TGgjbv8oGfmMNjfvcgxi2cX9RAJKGZnYGLEhzK2wNjM="
+    },
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/grafana/jsonnet-libs.git",
+          "subdir": "\\mixin-utils"
+        }
+      },
+      "version": "b5e45051995755ea373ea67642f8e5f54fcb8dd7",
+      "sum": "Je2SxBKu+1WrKEEG60zjSKaY/6TPX8uRz5bsaw0a8oA="
     },
     {
       "source": {

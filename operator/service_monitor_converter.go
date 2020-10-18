@@ -20,17 +20,17 @@ import (
 
 var invalidLabelCharRE = regexp.MustCompile(`[^a-zA-Z0-9_]`)
 
-func MakeInstanceForServiceMonitor(rw *config.RemoteWriteConfig, sm *v1.ServiceMonitor) []*instance.Config {
+func (w *watcher) makeInstanceForServiceMonitor(sm *v1.ServiceMonitor) []*instance.Config {
 	results := make([]*instance.Config, len(sm.Spec.Endpoints))
 
 	for i, ep := range sm.Spec.Endpoints {
-		results[i] = makeInstanceForServiceMonitorEndpoint(rw, sm, ep, i)
+		results[i] = w.makeInstanceForServiceMonitorEndpoint(sm, ep, i)
 	}
 
 	return results
 }
 
-func makeInstanceForServiceMonitorEndpoint(rw *config.RemoteWriteConfig, sm *v1.ServiceMonitor, ep v1.Endpoint, endpointNumber int) *instance.Config {
+func (w *watcher) makeInstanceForServiceMonitorEndpoint(sm *v1.ServiceMonitor, ep v1.Endpoint, endpointNumber int) *instance.Config {
 	// TODO: Can we contribute to the operator to write this for us? This is mostly copied from the operator
 	//       See https://github.com/prometheus-operator/prometheus-operator/blob/d97ba662bc94d64e254e116f3cbf573068ac2d87/pkg/prometheus/promcfg.go#L851
 	honorTimestamps := false
@@ -299,7 +299,7 @@ func makeInstanceForServiceMonitorEndpoint(rw *config.RemoteWriteConfig, sm *v1.
 	return &instance.Config{
 		Name:          name,
 		ScrapeConfigs: []*config.ScrapeConfig{sc},
-		RemoteWrite:   []*config.RemoteWriteConfig{rw},
+		RemoteWrite:   []*config.RemoteWriteConfig{w.remoteWriteConfig},
 	}
 }
 

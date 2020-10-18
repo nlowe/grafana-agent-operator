@@ -17,6 +17,7 @@ replace (
 
 require (
 	github.com/grafana/agent v0.6.1
+	github.com/hashicorp/go-cleanhttp v0.5.1
 	github.com/magiconair/properties v1.8.4 // indirect
 	github.com/mattn/go-colorable v0.1.8
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d // indirect

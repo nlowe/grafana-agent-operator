@@ -26,20 +26,33 @@ type watcher struct {
 	wg wait.Group
 
 	ctx context.Context
-	log logrus.FieldLogger
+
+	remoteWriteConfig *config.RemoteWriteConfig
 
 	store      cache.Store
 	controller cache.Controller
+
+	manager ConfigManager
+
+	log logrus.FieldLogger
 }
 
-func NewWatcher(ctx context.Context, cfg *rest.Config) (*watcher, error) {
+func NewWatcher(ctx context.Context, cfg *rest.Config, manager ConfigManager) (*watcher, error) {
 	c, err := monitoringv1client.NewForConfig(cfg)
 	if err != nil {
 		return nil, err
 	}
 
+	u, err := url.Parse(viper.GetString("remote-write-url"))
+	if err != nil {
+		return nil, err
+	}
+
 	w := &watcher{
-		ctx: ctx,
+		ctx:               ctx,
+		remoteWriteConfig: &config.RemoteWriteConfig{URL: &commonconfig.URL{URL: u}},
+		manager:           manager,
+
 		log: logrus.WithField("prefix", "watcher"),
 	}
 
@@ -134,6 +147,7 @@ func (w *watcher) onDelete(obj interface{}) {
 		"namespace": s.Namespace,
 		"name":      s.Name,
 	}).Info("ServiceMonitor removed")
+	w.delete(s)
 }
 
 func (w *watcher) sync(s *v1.ServiceMonitor) {
@@ -143,20 +157,31 @@ func (w *watcher) sync(s *v1.ServiceMonitor) {
 	})
 
 	log.Debug("Syncing ServiceMonitor")
+	cfgs := w.makeInstanceForServiceMonitor(s)
 
-	u, _ := url.Parse(viper.GetString("remote-write-url"))
-	cfgs := MakeInstanceForServiceMonitor(&config.RemoteWriteConfig{URL: &commonconfig.URL{
-		URL: u,
-	}}, s)
-
-	endpoint := viper.GetString("agent-url")
 	for _, cfg := range cfgs {
 		raw, _ := instance.MarshalConfig(cfg, true)
 		log.Tracef("Generate config: \n%s\n", string(raw))
+		if err := w.manager.UpdateScrapeConfig(cfg); err != nil {
+			log.WithError(err).Errorf("Failed to sync config")
+			// TODO: re-try with backoff?
+		}
+	}
+}
 
-		if endpoint != "" {
-			log.WithField("endpoint", endpoint).Trace("Syncing with grafana-agent")
-			// TODO: POST to grafana-agent
+func (w *watcher) delete(s *v1.ServiceMonitor) {
+	log := w.log.WithFields(logrus.Fields{
+		"namespace": s.Namespace,
+		"name":      s.Name,
+	})
+
+	log.Debug("Deleting ServiceMonitor")
+	cfgs := w.makeInstanceForServiceMonitor(s)
+
+	for _, cfg := range cfgs {
+		if err := w.manager.DeleteScrapeConfig(cfg); err != nil {
+			log.WithError(err).Errorf("Failed to delete config")
+			// TODO: re-try with backoff?
 		}
 	}
 }

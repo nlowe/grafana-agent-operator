@@ -57,15 +57,19 @@ func NewRootCmd() *cobra.Command {
 				return err
 			}
 
+			var cfgManager operator.ConfigManager = operator.NewNoOpConfigManager()
+
 			// TODO: k8s connectivity checks
 			// TODO: grafana-agent connectivity checks
-			if viper.GetString("agent-url") == "" {
+			if agentUrl := viper.GetString("agent-url"); agentUrl == "" {
 				logrus.Warn("--agent-url not specified, cannot sync with grafana-agent")
+			} else {
+				cfgManager = operator.NewGrafanaAgentConfigManager(agentUrl)
 			}
 
 			ctx, cancel := context.WithCancel(context.Background())
 
-			w, err := operator.NewWatcher(ctx, cfg)
+			w, err := operator.NewWatcher(ctx, cfg, cfgManager)
 			if err != nil {
 				return err
 			}

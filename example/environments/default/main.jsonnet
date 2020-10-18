@@ -1,4 +1,5 @@
-local k = import 'ksonnet-util/kausal.libsonnet';
+local k    = import 'ksonnet-util/kausal.libsonnet';
+local util = import 'util.libsonnet';
 
 local agent   = import 'grafana-agent/scraping-svc/main.libsonnet';
 local etcd    = import 'etcd.libsonnet';
@@ -9,15 +10,6 @@ local example = import 'example.libsonnet';
 local datasource = import 'grafana/datasource.libsonnet';
 
 local namespace = k.core.v1.namespace;
-
-local namespaced(obj, namespace) = {
-    [k]: obj[k] + {
-      [if std.objectHas(obj[k], 'kind') && !std.startsWith(obj[k].kind, 'Cluster') then 'metadata']+: {
-          namespace: 'monitoring'
-      }
-  }
-    for k in std.objectFields(obj)
-};
 
 local agent_objects = agent.new(namespace='monitoring') +
   agent.withConfigMixin({
@@ -52,9 +44,7 @@ local agent_objects = agent.new(namespace='monitoring') +
   };
 
 // The agent manifests seem to ignore _config.namespace. Force them to `monitoring`.
-local namespaced_agent_objects = namespaced(agent_objects, 'monitoring') + {
-    rbac: namespaced(agent_objects.rbac, 'monitoring')
-};
+local namespaced_agent_objects = util.namespaced(agent_objects, 'monitoring');
 
 local grafana_objects = grafana.new(namespace='monitoring') +
     grafana.withDashboards((import 'cortex-mixin/dashboards.jsonnet')) +
@@ -62,9 +52,8 @@ local grafana_objects = grafana.new(namespace='monitoring') +
         datasource.new('Cortex', 'http://cortex.monitoring.svc.cluster.local/api/prom')
     ]);
 
-local namespaced_grafana_objects = namespaced(grafana_objects, 'monitoring') + {
-    grafana_dashboard_cms: namespaced(grafana_objects.grafana_dashboard_cms, 'monitoring')
-};
+// Grafana also doesn't listen to _config.namespace...
+local namespaced_grafana_objects = util.namespaced(grafana_objects, 'monitoring');
 
 {
     namespaces: {

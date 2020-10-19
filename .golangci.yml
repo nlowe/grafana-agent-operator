@@ -1,0 +1,10 @@
+run:
+  modules-download-mode: readonly
+  timeout: 5m
+linters:
+  disable-all: true
+  enable:
+    - gofmt
+    - goimports
+    - govet
+

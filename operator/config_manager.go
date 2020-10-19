@@ -6,10 +6,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/nlowe/grafana-agent-operator/httputil"
-
 	"github.com/grafana/agent/pkg/prom/instance"
 	"github.com/hashicorp/go-cleanhttp"
+	"github.com/nlowe/grafana-agent-operator/httputil"
 	"github.com/sirupsen/logrus"
 )
 

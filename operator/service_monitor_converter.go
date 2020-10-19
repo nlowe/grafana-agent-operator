@@ -83,17 +83,17 @@ func (w *watcher) makeInstanceForServiceMonitorEndpoint(sm *v1.ServiceMonitor, e
 
 	if ep.TLSConfig != nil {
 		sc.HTTPClientConfig.TLSConfig.InsecureSkipVerify = ep.TLSConfig.InsecureSkipVerify
-		if ep.TLSConfig.CA.Secret != nil || ep.TLSConfig.CA.ConfigMap != nil {
-			// TODO: Lookup from secret / configmap
-		}
-
-		if ep.TLSConfig.Cert.Secret != nil || ep.TLSConfig.Cert.ConfigMap != nil {
-			// TODO: Lookup from secret / configmap
-		}
-
-		if ep.TLSConfig.KeySecret != nil {
-			// TODO: Lookup from secret
-		}
+		//if ep.TLSConfig.CA.Secret != nil || ep.TLSConfig.CA.ConfigMap != nil {
+		//	// TODO: Lookup from secret / configmap
+		//}
+		//
+		//if ep.TLSConfig.Cert.Secret != nil || ep.TLSConfig.Cert.ConfigMap != nil {
+		//	// TODO: Lookup from secret / configmap
+		//}
+		//
+		//if ep.TLSConfig.KeySecret != nil {
+		//	// TODO: Lookup from secret
+		//}
 
 		sc.HTTPClientConfig.TLSConfig.ServerName = ep.TLSConfig.ServerName
 	}
@@ -102,9 +102,9 @@ func (w *watcher) makeInstanceForServiceMonitorEndpoint(sm *v1.ServiceMonitor, e
 		sc.HTTPClientConfig.BearerTokenFile = ep.BearerTokenFile
 	}
 
-	if ep.BearerTokenSecret.Name != "" {
-		// TODO: Bearer token secrets
-	}
+	//if ep.BearerTokenSecret.Name != "" {
+	//	// TODO: Bearer token secrets
+	//}
 
 	var labelKeys []string
 	for k := range sm.Spec.Selector.MatchLabels {
@@ -248,59 +248,48 @@ func (w *watcher) makeInstanceForServiceMonitorEndpoint(sm *v1.ServiceMonitor, e
 		})
 	} else if ep.TargetPort != nil && ep.TargetPort.String() != "" {
 		sc.RelabelConfigs = append(sc.RelabelConfigs, &relabel.Config{
-			TargetLabel: "",
+			TargetLabel: "endpoint",
 			Replacement: ep.TargetPort.String(),
 		})
 	}
 
-	for _, c := range ep.RelabelConfigs {
-		rlc := &relabel.Config{
-			Replacement: c.Replacement,
-			TargetLabel: c.TargetLabel,
-			Separator:   c.Separator,
-			Action:      relabel.Action(c.Action),
-			Modulus:     c.Modulus,
-		}
-
-		if c.Regex != "" {
-			rlc.Regex = relabel.MustNewRegexp(c.Regex)
-		}
-
-		for _, l := range c.SourceLabels {
-			rlc.SourceLabels = append(rlc.SourceLabels, model.LabelName(l))
-		}
-
-		sc.RelabelConfigs = append(sc.RelabelConfigs, rlc)
-	}
+	sc.RelabelConfigs = append(sc.RelabelConfigs, makeRelabelConfigs(ep.RelabelConfigs)...)
 
 	// TODO: Enforce Namespace Label from the operator?
 
-	for _, c := range ep.MetricRelabelConfigs {
-		// TODO: Check for enforced namespace label
-		rlc := &relabel.Config{
-			Replacement: c.Replacement,
-			TargetLabel: c.TargetLabel,
-			Separator:   c.Separator,
-			Action:      relabel.Action(c.Action),
-			Modulus:     c.Modulus,
-		}
-
-		if c.Regex != "" {
-			rlc.Regex = relabel.MustNewRegexp(c.Regex)
-		}
-
-		for _, l := range c.SourceLabels {
-			rlc.SourceLabels = append(rlc.SourceLabels, model.LabelName(l))
-		}
-
-		sc.RelabelConfigs = append(sc.RelabelConfigs, rlc)
-	}
+	sc.RelabelConfigs = append(sc.RelabelConfigs, makeRelabelConfigs(ep.MetricRelabelConfigs)...)
 
 	return &instance.Config{
 		Name:          name,
 		ScrapeConfigs: []*config.ScrapeConfig{sc},
 		RemoteWrite:   []*config.RemoteWriteConfig{w.remoteWriteConfig},
 	}
+}
+
+func makeRelabelConfigs(rlcs []*v1.RelabelConfig) []*relabel.Config {
+	var results []*relabel.Config
+
+	for _, c := range rlcs {
+		rlc := &relabel.Config{
+			Replacement: c.Replacement,
+			TargetLabel: c.TargetLabel,
+			Separator:   c.Separator,
+			Action:      relabel.Action(c.Action),
+			Modulus:     c.Modulus,
+		}
+
+		if c.Regex != "" {
+			rlc.Regex = relabel.MustNewRegexp(c.Regex)
+		}
+
+		for _, l := range c.SourceLabels {
+			rlc.SourceLabels = append(rlc.SourceLabels, model.LabelName(l))
+		}
+
+		results = append(results, rlc)
+	}
+
+	return results
 }
 
 func effectiveNamespaceSelector(sm *v1.ServiceMonitor) []string {

@@ -71,6 +71,7 @@ func NewRootCmd() *cobra.Command {
 
 			w, err := operator.NewWatcher(ctx, cfg, cfgManager)
 			if err != nil {
+				cancel()
 				return err
 			}
 

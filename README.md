@@ -1,5 +1,7 @@
 # grafana-agent-operator
 
+[![Build Status](https://github.com/nlowe/grafana-agent-operator/workflows/ci/badge.svg)](https://github.com/nlowe/grafana-agent-operator/actions?workflow=ci) [![Coverage Status](https://coveralls.io/repos/github/nlowe/grafana-agent-operator/badge.svg?branch=master)](https://coveralls.io/github/nlowe/grafana-agent-operator?branch=master)
+
 An experimental operator to watch for [`ServiceMonitor`](https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#servicemonitor)s.
 
 Highly experimental and WIP

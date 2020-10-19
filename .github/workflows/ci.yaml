@@ -54,6 +54,9 @@ jobs:
           key: lint-${{ matrix.go }}-${{ hashFiles('**/go.sum') }}
           restore-keys: |
 
+      - name: Pre-Fetch Go Modules
+        run: go mod download
+
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v2
         with:

@@ -69,22 +69,21 @@ func NewRootCmd() *cobra.Command {
 
 			ctx, cancel := context.WithCancel(context.Background())
 
-			w, err := operator.NewWatcher(ctx, cfg, cfgManager)
+			controller, err := operator.NewControllerForConfig(cfg, cfgManager)
 			if err != nil {
-				cancel()
 				return err
 			}
 
-			go w.Run()
+			go func() {
+				c := make(chan os.Signal, 1)
+				signal.Notify(c, os.Interrupt)
 
-			c := make(chan os.Signal, 1)
-			signal.Notify(c, os.Interrupt)
+				<-c
+				cancel()
+				logrus.Info("Shutting Down")
+			}()
 
-			<-c
-			cancel()
-
-			logrus.Info("Shutting Down")
-			return w.Close()
+			return controller.Run(ctx)
 		},
 	}
 

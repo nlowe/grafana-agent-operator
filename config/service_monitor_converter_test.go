@@ -1,4 +1,4 @@
-package operator
+package config
 
 import (
 	"net/url"
@@ -17,7 +17,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-func genConfig(sut *watcher, ep v1.Endpoint) *instance.Config {
+func genConfig(sut *writer, ep v1.Endpoint) *instance.Config {
 	return sut.makeInstanceForServiceMonitorEndpoint(&v1.ServiceMonitor{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "dummy",
@@ -31,10 +31,10 @@ func genConfig(sut *watcher, ep v1.Endpoint) *instance.Config {
 
 func TestMakeInstanceForServiceMonitor(t *testing.T) {
 	u, _ := url.Parse("http://cortex.monitoring.svc.cluster.local/api/prom/push")
-	sut := &watcher{remoteWriteConfig: &config.RemoteWriteConfig{URL: &commonconfig.URL{URL: u}}}
+	sut := &writer{rwc: &config.RemoteWriteConfig{URL: &commonconfig.URL{URL: u}}}
 
 	t.Run("Instance Per Endpoint", func(t *testing.T) {
-		configs := sut.makeInstanceForServiceMonitor(&v1.ServiceMonitor{
+		configs := sut.ScrapeConfigsForServiceMonitor(&v1.ServiceMonitor{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "dummy",
 				Namespace: "myapp",

@@ -1,9 +1,8 @@
-package operator
+package config
 
 import (
 	"fmt"
 	"net/url"
-	"regexp"
 	"sort"
 	"strings"
 
@@ -18,9 +17,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-var invalidLabelCharRE = regexp.MustCompile(`[^a-zA-Z0-9_]`)
-
-func (w *watcher) makeInstanceForServiceMonitor(sm *v1.ServiceMonitor) []*instance.Config {
+func (w *writer) ScrapeConfigsForServiceMonitor(sm *v1.ServiceMonitor) []*instance.Config {
 	results := make([]*instance.Config, len(sm.Spec.Endpoints))
 
 	for i, ep := range sm.Spec.Endpoints {
@@ -30,7 +27,7 @@ func (w *watcher) makeInstanceForServiceMonitor(sm *v1.ServiceMonitor) []*instan
 	return results
 }
 
-func (w *watcher) makeInstanceForServiceMonitorEndpoint(sm *v1.ServiceMonitor, ep v1.Endpoint, endpointNumber int) *instance.Config {
+func (w *writer) makeInstanceForServiceMonitorEndpoint(sm *v1.ServiceMonitor, ep v1.Endpoint, endpointNumber int) *instance.Config {
 	// TODO: Can we contribute to the operator to write this for us? This is mostly copied from the operator
 	//       See https://github.com/prometheus-operator/prometheus-operator/blob/d97ba662bc94d64e254e116f3cbf573068ac2d87/pkg/prometheus/promcfg.go#L851
 	honorTimestamps := false
@@ -262,63 +259,6 @@ func (w *watcher) makeInstanceForServiceMonitorEndpoint(sm *v1.ServiceMonitor, e
 	return &instance.Config{
 		Name:          name,
 		ScrapeConfigs: []*config.ScrapeConfig{sc},
-		RemoteWrite:   []*config.RemoteWriteConfig{w.remoteWriteConfig},
+		RemoteWrite:   []*config.RemoteWriteConfig{w.rwc},
 	}
-}
-
-func makeRelabelConfigs(rlcs []*v1.RelabelConfig) []*relabel.Config {
-	var results []*relabel.Config
-
-	for _, c := range rlcs {
-		rlc := &relabel.Config{
-			Replacement: c.Replacement,
-			TargetLabel: c.TargetLabel,
-			Separator:   c.Separator,
-			Action:      relabel.Action(c.Action),
-			Modulus:     c.Modulus,
-		}
-
-		if c.Regex != "" {
-			rlc.Regex = relabel.MustNewRegexp(c.Regex)
-		}
-
-		for _, l := range c.SourceLabels {
-			rlc.SourceLabels = append(rlc.SourceLabels, model.LabelName(l))
-		}
-
-		results = append(results, rlc)
-	}
-
-	return results
-}
-
-func effectiveNamespaceSelector(sm *v1.ServiceMonitor) []string {
-	// TODO: Global ignore at operator?
-	if sm.Spec.NamespaceSelector.Any {
-		return []string{}
-	} else if len(sm.Spec.NamespaceSelector.MatchNames) == 0 {
-		return []string{sm.Namespace}
-	}
-
-	return sm.Spec.NamespaceSelector.MatchNames
-}
-
-func sdConfig(namespaces []string) *kubernetes.SDConfig {
-	cfg := &kubernetes.SDConfig{
-		Role: kubernetes.RoleEndpoint,
-	}
-
-	if len(namespaces) != 0 {
-		cfg.NamespaceDiscovery = kubernetes.NamespaceDiscovery{
-			Names: namespaces,
-		}
-	}
-
-	// TODO: Global API Server config?
-	// TODO: TLS Config from global API Server config?
-	return cfg
-}
-
-func safeLabelName(name string) string {
-	return invalidLabelCharRE.ReplaceAllString(name, "_")
 }

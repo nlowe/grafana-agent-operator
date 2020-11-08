@@ -29,6 +29,10 @@ func genConfig(sut *writer, ep v1.Endpoint) *instance.Config {
 	}, ep, 0)
 }
 
+func getSDConfig(i *instance.Config) *kubernetes.SDConfig {
+	return i.ScrapeConfigs[0].ServiceDiscoveryConfigs[0].(*kubernetes.SDConfig)
+}
+
 func TestMakeInstanceForServiceMonitor(t *testing.T) {
 	u, _ := url.Parse("http://cortex.monitoring.svc.cluster.local/api/prom/push")
 	sut := &writer{rwc: &config.RemoteWriteConfig{URL: &commonconfig.URL{URL: u}}}
@@ -94,7 +98,7 @@ func TestMakeInstanceForServiceMonitor(t *testing.T) {
 		t.Run("Kubernetes SD Configs", func(t *testing.T) {
 			t.Run("Endpoint Mode", func(t *testing.T) {
 				cfg := genConfig(sut, v1.Endpoint{})
-				require.Equal(t, kubernetes.RoleEndpoint, cfg.ScrapeConfigs[0].ServiceDiscoveryConfig.KubernetesSDConfigs[0].Role)
+				require.Equal(t, kubernetes.RoleEndpoint, getSDConfig(cfg).Role)
 			})
 
 			t.Run("Namespace Selector Any", func(t *testing.T) {
@@ -109,7 +113,7 @@ func TestMakeInstanceForServiceMonitor(t *testing.T) {
 					},
 				}, v1.Endpoint{}, 0)
 
-				require.Empty(t, cfg.ScrapeConfigs[0].ServiceDiscoveryConfig.KubernetesSDConfigs[0].NamespaceDiscovery.Names)
+				require.Empty(t, getSDConfig(cfg).NamespaceDiscovery.Names)
 			})
 
 			t.Run("Same Namespace", func(t *testing.T) {
@@ -123,7 +127,7 @@ func TestMakeInstanceForServiceMonitor(t *testing.T) {
 					},
 				}, v1.Endpoint{}, 0)
 
-				result := cfg.ScrapeConfigs[0].ServiceDiscoveryConfig.KubernetesSDConfigs[0].NamespaceDiscovery.Names
+				result := getSDConfig(cfg).NamespaceDiscovery.Names
 				assert.Len(t, result, 1)
 				assert.Equal(t, "myapp", result[0])
 			})
@@ -140,7 +144,7 @@ func TestMakeInstanceForServiceMonitor(t *testing.T) {
 					},
 				}, v1.Endpoint{}, 0)
 
-				result := cfg.ScrapeConfigs[0].ServiceDiscoveryConfig.KubernetesSDConfigs[0].NamespaceDiscovery.Names
+				result := getSDConfig(cfg).NamespaceDiscovery.Names
 				assert.Len(t, result, 2)
 				assert.Contains(t, result, "a")
 				assert.Contains(t, result, "b")
@@ -223,18 +227,18 @@ func TestMakeInstanceForServiceMonitor(t *testing.T) {
 		t.Run("TLS Config", func(t *testing.T) {
 			t.Run("Insecure Skip Verify", func(t *testing.T) {
 				t.Run("False", func(t *testing.T) {
-					cfg := genConfig(sut, v1.Endpoint{TLSConfig: &v1.TLSConfig{InsecureSkipVerify: false}})
+					cfg := genConfig(sut, v1.Endpoint{TLSConfig: &v1.TLSConfig{SafeTLSConfig: v1.SafeTLSConfig{InsecureSkipVerify: false}}})
 					require.False(t, cfg.ScrapeConfigs[0].HTTPClientConfig.TLSConfig.InsecureSkipVerify)
 				})
 
 				t.Run("Set", func(t *testing.T) {
-					cfg := genConfig(sut, v1.Endpoint{TLSConfig: &v1.TLSConfig{InsecureSkipVerify: true}})
+					cfg := genConfig(sut, v1.Endpoint{TLSConfig: &v1.TLSConfig{SafeTLSConfig: v1.SafeTLSConfig{InsecureSkipVerify: true}}})
 					require.True(t, cfg.ScrapeConfigs[0].HTTPClientConfig.TLSConfig.InsecureSkipVerify)
 				})
 			})
 
 			t.Run("Server Name", func(t *testing.T) {
-				cfg := genConfig(sut, v1.Endpoint{TLSConfig: &v1.TLSConfig{ServerName: "foo.bar"}})
+				cfg := genConfig(sut, v1.Endpoint{TLSConfig: &v1.TLSConfig{SafeTLSConfig: v1.SafeTLSConfig{ServerName: "foo.bar"}}})
 				require.Equal(t, "foo.bar", cfg.ScrapeConfigs[0].HTTPClientConfig.TLSConfig.ServerName)
 			})
 		})

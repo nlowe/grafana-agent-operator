@@ -39,8 +39,8 @@ func TestRoute(t *testing.T) {
 		expected string
 	}{
 		{name: "dummy", expected: "http://agent.monitoring.cluster.svc.local:8888/agent/api/v1/config/dummy"},
-		{name: "foo/bar", expected: "http://agent.monitoring.cluster.svc.local:8888/agent/api/v1/config/foo.bar"},
-		{name: "foo/bar/baz", expected: "http://agent.monitoring.cluster.svc.local:8888/agent/api/v1/config/foo.bar.baz"},
+		{name: "foo/bar", expected: "http://agent.monitoring.cluster.svc.local:8888/agent/api/v1/config/foo%2Fbar"},
+		{name: "foo/bar/baz", expected: "http://agent.monitoring.cluster.svc.local:8888/agent/api/v1/config/foo%2Fbar%2Fbaz"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

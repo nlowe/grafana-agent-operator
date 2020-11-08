@@ -11,8 +11,7 @@ import (
 	commonconfig "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"
-	sdconfig "github.com/prometheus/prometheus/discovery/config"
-	"github.com/prometheus/prometheus/discovery/kubernetes"
+	"github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/pkg/relabel"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -43,13 +42,11 @@ func (w *writer) makeInstanceForServiceMonitorEndpoint(sm *v1.ServiceMonitor, ep
 	sc := &config.ScrapeConfig{
 		JobName: name,
 		// TODO: Override at the operator level?
-		HonorLabels:     ep.HonorLabels,
-		HonorTimestamps: honorTimestamps,
-		ServiceDiscoveryConfig: sdconfig.ServiceDiscoveryConfig{
-			KubernetesSDConfigs: []*kubernetes.SDConfig{sdConfig(namespaces)},
-		},
-		SampleLimit: uint(sm.Spec.SampleLimit),
-		// TODO: Target Limit (Needs Prometheus 2.21.0+, agent is still on 2.20.1)
+		HonorLabels:             ep.HonorLabels,
+		HonorTimestamps:         honorTimestamps,
+		ServiceDiscoveryConfigs: discovery.Configs{sdConfig(namespaces)},
+		SampleLimit:             uint(sm.Spec.SampleLimit),
+		TargetLimit:             uint(sm.Spec.TargetLimit),
 	}
 
 	if ep.Interval != "" {

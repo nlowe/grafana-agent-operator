@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/grafana/agent/pkg/prom/instance"
@@ -34,9 +35,7 @@ func NewGrafanaAgentConfigManager(apiRoot string) *grafanaAgentConfigManager {
 }
 
 func (g *grafanaAgentConfigManager) route(cfg *instance.Config) string {
-	// TODO: https://github.com/grafana/agent/issues/215
-	//       Replace `/` with `.` because the agent can't handle slashes in config names, even if they're encoded :/
-	return fmt.Sprintf("%s/agent/api/v1/config/%s", g.apiRoot, strings.ReplaceAll(cfg.Name, "/", "."))
+	return fmt.Sprintf("%s/agent/api/v1/config/%s", g.apiRoot, url.PathEscape(cfg.Name))
 }
 
 func (g *grafanaAgentConfigManager) UpdateScrapeConfig(cfg *instance.Config) error {

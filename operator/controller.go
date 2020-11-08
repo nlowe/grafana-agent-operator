@@ -35,9 +35,9 @@ const controllerAgentName = "grafana-agent-operator"
 
 const (
 	SuccessfullySynced = "Synced"
-	FailedSync         = "FailedSynced"
+	FailedSync         = "FailedSync"
 
-	MessageSuccessfullySynced = "Scrape Configuration synced with agent"
+	MessageSuccessfullySynced = "Scrape Configuration '%s' synced with agent"
 )
 
 type monitorTarget struct {
@@ -153,6 +153,8 @@ func (c *Controller) Run(ctx context.Context) error {
 		return fmt.Errorf("one or more caches failed to sync: %w", warmup.Err())
 	}
 
+	// TODO: Remove configs for ServiceMonitors that were removed while the operator was down
+
 	c.log.Info("Starting Workers")
 	// TODO: How many workers to we want to start?
 	for i := 0; i < runtime.NumCPU(); i++ {
@@ -244,9 +246,15 @@ func (c *Controller) doSync(key string) error {
 			c.recorder.Event(sm, corev1.EventTypeWarning, FailedSync, err.Error())
 			return err
 		}
+
+		c.recorder.Event(
+			sm,
+			corev1.EventTypeNormal,
+			SuccessfullySynced,
+			fmt.Sprintf(MessageSuccessfullySynced, cfg.Name),
+		)
 	}
 
-	c.recorder.Event(sm, corev1.EventTypeNormal, SuccessfullySynced, MessageSuccessfullySynced)
 	return nil
 }
 

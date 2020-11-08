@@ -12,6 +12,11 @@ local datasource = import 'grafana/datasource.libsonnet';
 local namespace = k.core.v1.namespace;
 
 local agent_objects = agent.new(namespace='monitoring') +
+  {
+    _images+:: {
+      agent: 'grafana/agent:v0.8.0'
+    }
+  } +
   agent.withConfigMixin({
       local kvstore = {
         store: 'etcd',
@@ -47,7 +52,8 @@ local agent_objects = agent.new(namespace='monitoring') +
 local namespaced_agent_objects = util.namespaced(agent_objects, 'monitoring');
 
 local grafana_objects = grafana.new(namespace='monitoring') +
-    grafana.withDashboards((import 'cortex-mixin/dashboards.jsonnet')) +
+    // TODO: Looks like we can't import just the dashboards anymore with the default setup
+    //grafana.withDashboards((import 'cortex-mixin/dashboards.libsonnet').grafanaDashboards) +
     grafana.withDataSources([
       datasource.new('Cortex', 'http://cortex.monitoring.svc.cluster.local/api/prom')
     ]);

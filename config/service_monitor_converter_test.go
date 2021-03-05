@@ -301,8 +301,8 @@ func TestMakeInstanceForServiceMonitor(t *testing.T) {
 
 			assertRLC(t, cfg.ScrapeConfigs[0], relabel.Keep, "__meta_kubernetes_service_label_in", "^(?:a|b)$")
 			assertRLC(t, cfg.ScrapeConfigs[0], relabel.Drop, "__meta_kubernetes_service_label_notin", "^(?:c|d)$")
-			assertRLC(t, cfg.ScrapeConfigs[0], relabel.Keep, "__meta_kubernetes_service_label_exists", "^(?:.*)$")
-			assertRLC(t, cfg.ScrapeConfigs[0], relabel.Drop, "__meta_kubernetes_service_label_notexists", "^(?:.*)$")
+			assertRLC(t, cfg.ScrapeConfigs[0], relabel.Keep, "__meta_kubernetes_service_labelpresent_exists", "^(?:true)$")
+			assertRLC(t, cfg.ScrapeConfigs[0], relabel.Drop, "__meta_kubernetes_service_labelpresent_notexists", "^(?:true)$")
 		})
 
 		t.Run("Port", func(t *testing.T) {

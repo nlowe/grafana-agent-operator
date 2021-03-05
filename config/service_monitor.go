@@ -131,14 +131,14 @@ func (w *writer) makeInstanceForServiceMonitorEndpoint(sm *v1.ServiceMonitor, ep
 		case metav1.LabelSelectorOpExists:
 			sc.RelabelConfigs = append(sc.RelabelConfigs, &relabel.Config{
 				Action:       relabel.Keep,
-				SourceLabels: []model.LabelName{model.LabelName("__meta_kubernetes_service_label_" + safeLabelName(exp.Key))},
-				Regex:        relabel.MustNewRegexp(".*"),
+				SourceLabels: []model.LabelName{model.LabelName("__meta_kubernetes_service_labelpresent_" + safeLabelName(exp.Key))},
+				Regex:        relabel.MustNewRegexp("true"),
 			})
 		case metav1.LabelSelectorOpDoesNotExist:
 			sc.RelabelConfigs = append(sc.RelabelConfigs, &relabel.Config{
 				Action:       relabel.Drop,
-				SourceLabels: []model.LabelName{model.LabelName("__meta_kubernetes_service_label_" + safeLabelName(exp.Key))},
-				Regex:        relabel.MustNewRegexp(".*"),
+				SourceLabels: []model.LabelName{model.LabelName("__meta_kubernetes_service_labelpresent_" + safeLabelName(exp.Key))},
+				Regex:        relabel.MustNewRegexp("true"),
 			})
 		}
 	}

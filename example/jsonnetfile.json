@@ -8,7 +8,7 @@
           "subdir": "example/k3d/lib/cortex"
         }
       },
-      "version": "master"
+      "version": "main"
     },
     {
       "source": {
@@ -17,7 +17,7 @@
           "subdir": "example/k3d/lib/grafana"
         }
       },
-      "version": "master"
+      "version": "main"
     },
     {
       "source": {
@@ -26,7 +26,7 @@
           "subdir": "production/tanka/grafana-agent"
         }
       },
-      "version": "master"
+      "version": "main"
     },
     {
       "source": {
@@ -35,7 +35,7 @@
           "subdir": "cortex-mixin"
         }
       },
-      "version": "master"
+      "version": "main"
     },
     {
       "source": {

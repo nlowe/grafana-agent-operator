@@ -14,7 +14,7 @@ local namespace = k.core.v1.namespace;
 local agent_objects = agent.new(namespace='monitoring') +
   {
     _images+:: {
-      agent: 'grafana/agent:v0.8.0'
+      agent: 'grafana/agent:v0.13.0'
     }
   } +
   agent.withConfigMixin({

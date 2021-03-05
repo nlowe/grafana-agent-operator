@@ -33,8 +33,8 @@ require (
 	github.com/mattn/go-colorable v0.1.8
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d // indirect
 	github.com/pelletier/go-toml v1.8.1 // indirect
-	github.com/prometheus-operator/prometheus-operator v0.43.1
-	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.43.0
+	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.46.0
+	github.com/prometheus-operator/prometheus-operator/pkg/client v0.46.0
 	github.com/prometheus/common v0.15.0
 	github.com/prometheus/prometheus v2.5.0+incompatible
 	github.com/sirupsen/logrus v1.7.0
@@ -45,6 +45,7 @@ require (
 	github.com/x-cray/logrus-prefixed-formatter v0.5.2
 	gopkg.in/ini.v1 v1.62.0 // indirect
 	k8s.io/api v0.20.2
+	k8s.io/apiextensions-apiserver v0.20.1 // indirect
 	k8s.io/apimachinery v0.20.2
 	k8s.io/client-go v12.0.0+incompatible
 )

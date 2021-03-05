@@ -256,6 +256,6 @@ func (w *writer) makeInstanceForServiceMonitorEndpoint(sm *v1.ServiceMonitor, ep
 	return &instance.Config{
 		Name:          name,
 		ScrapeConfigs: []*config.ScrapeConfig{sc},
-		RemoteWrite:   []*config.RemoteWriteConfig{w.rwc},
+		RemoteWrite:   []*instance.RemoteWriteConfig{w.rwc},
 	}
 }

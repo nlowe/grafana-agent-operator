@@ -6,7 +6,6 @@ import (
 	"github.com/grafana/agent/pkg/prom/instance"
 	v1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/prometheus/common/model"
-	"github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery/kubernetes"
 	"github.com/prometheus/prometheus/pkg/relabel"
 )
@@ -18,10 +17,10 @@ type Writer interface {
 }
 
 type writer struct {
-	rwc *config.RemoteWriteConfig
+	rwc *instance.RemoteWriteConfig
 }
 
-func NewWriter(rwc *config.RemoteWriteConfig) *writer {
+func NewWriter(rwc *instance.RemoteWriteConfig) *writer {
 	return &writer{rwc: rwc}
 }
 

@@ -7,6 +7,8 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/grafana/agent/pkg/prom/instance"
+
 	"github.com/nlowe/grafana-agent-operator/config"
 	"github.com/nlowe/grafana-agent-operator/k8sutil"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
@@ -85,7 +87,9 @@ func NewControllerForConfig(cfg *rest.Config, manager ConfigManager) (*Controlle
 	// TODO: Configure relist interval
 	factory := externalversions.NewSharedInformerFactory(monitoring, 1*time.Minute)
 	smi := factory.Monitoring().V1().ServiceMonitors()
-	writer := config.NewWriter(&promcfg.RemoteWriteConfig{URL: &commonconfig.URL{URL: u}})
+	writer := config.NewWriter(&instance.RemoteWriteConfig{
+		Base: promcfg.RemoteWriteConfig{URL: &commonconfig.URL{URL: u}},
+	})
 
 	log := logrus.WithField("prefix", "controller")
 

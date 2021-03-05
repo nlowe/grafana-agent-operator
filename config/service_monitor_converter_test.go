@@ -35,7 +35,7 @@ func getSDConfig(i *instance.Config) *kubernetes.SDConfig {
 
 func TestMakeInstanceForServiceMonitor(t *testing.T) {
 	u, _ := url.Parse("http://cortex.monitoring.svc.cluster.local/api/prom/push")
-	sut := &writer{rwc: &config.RemoteWriteConfig{URL: &commonconfig.URL{URL: u}}}
+	sut := &writer{rwc: &instance.RemoteWriteConfig{Base: config.RemoteWriteConfig{URL: &commonconfig.URL{URL: u}}}}
 
 	t.Run("Instance Per Endpoint", func(t *testing.T) {
 		configs := sut.ScrapeConfigsForServiceMonitor(&v1.ServiceMonitor{
@@ -66,7 +66,7 @@ func TestMakeInstanceForServiceMonitor(t *testing.T) {
 			cfg := genConfig(sut, v1.Endpoint{})
 
 			require.Len(t, cfg.RemoteWrite, 1)
-			assert.Equal(t, u.String(), cfg.RemoteWrite[0].URL.String())
+			assert.Equal(t, u.String(), cfg.RemoteWrite[0].Base.URL.String())
 		})
 
 		t.Run("Honor Timestamps", func(t *testing.T) {

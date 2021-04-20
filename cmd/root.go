@@ -5,6 +5,8 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"runtime"
+	"time"
 
 	"github.com/nlowe/grafana-agent-operator/operator"
 	"github.com/sirupsen/logrus"
@@ -98,6 +100,9 @@ func NewRootCmd() *cobra.Command {
 	flags.String("agent-url", "", "The API Endpoint to write instance configuration to")
 	flags.String("remote-write-url", "http://cortex.monitoring.svc.cluster.local/api/prom/push", "The URL to use for remote-write")
 	flags.String("remote-write-config", "", "The path to a file containing the remote_write config to use")
+
+	flags.Int("parallelism", runtime.NumCPU(), "The number of worker goroutines to start")
+	flags.Duration("relist", 1*time.Minute, "How often to re-list ServiceMonitors")
 
 	_ = viper.BindPFlags(flags)
 

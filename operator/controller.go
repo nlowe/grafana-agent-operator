@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/url"
-	"runtime"
 	"time"
 
 	"github.com/grafana/agent/pkg/prom/instance"
@@ -74,8 +73,7 @@ func NewControllerForConfig(cfg *rest.Config, manager ConfigManager) (*Controlle
 		return nil, err
 	}
 
-	// TODO: Configure relist interval
-	factory := externalversions.NewSharedInformerFactory(monitoring, 1*time.Minute)
+	factory := externalversions.NewSharedInformerFactory(monitoring, viper.GetDuration("relist"))
 	smi := factory.Monitoring().V1().ServiceMonitors()
 	writer := config.NewWriter(&instance.RemoteWriteConfig{
 		Base: promcfg.RemoteWriteConfig{URL: &commonconfig.URL{URL: u}},
@@ -111,6 +109,7 @@ func NewControllerForConfig(cfg *rest.Config, manager ConfigManager) (*Controlle
 	}
 
 	// TODO: PodMonitors as well
+	// TODO: Probes?
 	smi.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc: result.enqueue,
 		UpdateFunc: func(oldObj, newObj interface{}) {
@@ -175,8 +174,7 @@ func (c *Controller) Run(ctx context.Context) error {
 	}
 
 	c.log.Info("Starting Workers")
-	// TODO: How many workers to we want to start?
-	for i := 0; i < runtime.NumCPU(); i++ {
+	for i := 0; i < viper.GetInt("parallelism"); i++ {
 		go wait.Until(c.runWorker, time.Second, ctx.Done())
 	}
 

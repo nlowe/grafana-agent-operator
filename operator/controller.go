@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/grafana/agent/pkg/prom/instance"
-
 	"github.com/nlowe/grafana-agent-operator/config"
 	"github.com/nlowe/grafana-agent-operator/k8sutil"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
@@ -55,7 +54,7 @@ type Controller struct {
 	factory externalversions.SharedInformerFactory
 
 	serviceMonitorLister   monitoringclientv1.ServiceMonitorLister
-	serviceMonitorSynced   cache.InformerSynced
+	serviceMoniotrInformer cache.SharedIndexInformer
 	removedServiceMonitors cache.Indexer
 
 	work     workqueue.RateLimitingInterface
@@ -107,7 +106,7 @@ func NewControllerForConfig(cfg *rest.Config, manager ConfigManager) (*Controlle
 		factory: factory,
 
 		serviceMonitorLister:   smi.Lister(),
-		serviceMonitorSynced:   smi.Informer().HasSynced,
+		serviceMoniotrInformer: smi.Informer(),
 		removedServiceMonitors: cache.NewIndexer(cache.DeletionHandlingMetaNamespaceKeyFunc, cache.Indexers{}),
 
 		work:     workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "ServiceMonitors"),
@@ -147,17 +146,42 @@ func (c *Controller) Run(ctx context.Context) error {
 	c.log.Info("Starting Controller")
 	go c.factory.Start(ctx.Done())
 
+	c.log.Info("Fetching existing configs")
+	existing, err := c.manager.ListScrapeConfigs()
+	if err != nil {
+		return fmt.Errorf("failed to list existing configs: %w", err)
+	}
+
+	knownServiceMonitors := map[string]struct{}{}
+	for _, sm := range existing {
+		knownServiceMonitors[sm] = struct{}{}
+	}
+
 	c.log.Info("Warming up the cache")
 	warmup, cancel := context.WithTimeout(ctx, 1*time.Minute)
 	ok := func() bool {
 		defer cancel()
-		return cache.WaitForCacheSync(warmup.Done(), c.serviceMonitorSynced)
+		return cache.WaitForCacheSync(warmup.Done(), c.serviceMoniotrInformer.HasSynced)
 	}()
 	if !ok {
 		return fmt.Errorf("one or more caches failed to sync: %w", warmup.Err())
 	}
 
-	// TODO: Remove configs for ServiceMonitors that were removed while the operator was down
+	for _, obj := range c.serviceMoniotrInformer.GetStore().List() {
+		for _, cfg := range c.configWriter.ScrapeConfigsForServiceMonitor(obj.(*monitoringv1.ServiceMonitor)) {
+			delete(knownServiceMonitors, cfg.Name)
+		}
+	}
+
+	c.log.Infof("Cleaning up %d service monitors that were removed while the operator was down", len(knownServiceMonitors))
+	for sm := range knownServiceMonitors {
+		log := c.log.WithField("name", sm)
+		log.Debug("Cleaning up removed ServiceMonitor")
+		// TODO: Somehow do this via the work queue instead?
+		if err := c.manager.DeleteScrapeConfig(&instance.Config{Name: sm}); err != nil {
+			log.WithError(err).Errorf("Failed to cleanup stale ServiceMonitor, ignoring...")
+		}
+	}
 
 	c.log.Info("Starting Workers")
 	// TODO: How many workers to we want to start?

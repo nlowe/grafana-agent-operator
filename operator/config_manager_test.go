@@ -20,15 +20,20 @@ func TestNewNoOpConfigManager(t *testing.T) {
 	assert.NoError(t, sut.UpdateScrapeConfig(nil))
 }
 
-func makeMockAgentServer(code int) (*string, *httptest.Server, *grafanaAgentConfigManager) {
+func makeMockAgentServerWithBody(code int, body string) (*string, *httptest.Server, *grafanaAgentConfigManager) {
 	var path string
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		path = r.URL.Path
 		w.WriteHeader(code)
+		_, _ = w.Write([]byte(body))
 	}))
 
 	return &path, server, NewGrafanaAgentConfigManager(server.URL)
+}
+
+func makeMockAgentServer(code int) (*string, *httptest.Server, *grafanaAgentConfigManager) {
+	return makeMockAgentServerWithBody(code, "")
 }
 
 func TestRoute(t *testing.T) {
@@ -54,6 +59,28 @@ func TestGrafanaAgentConfigManager(t *testing.T) {
 
 	cfg := &instance.Config{Name: "dummy"}
 
+	t.Run("ListScrapeConfig", func(t *testing.T) {
+		path, server, sut := makeMockAgentServerWithBody(http.StatusOK, `{
+  "status": "success",
+  "data": {
+    "configs": [
+      "a",
+      "b",
+      "c"
+    ]
+  }
+}`)
+		defer server.Close()
+
+		cfgs, err := sut.ListScrapeConfigs()
+		assertResponse(t, path, "/agent/api/v1/configs", nil, err)
+
+		assert.Len(t, cfgs, 3)
+		assert.Contains(t, cfgs, "a")
+		assert.Contains(t, cfgs, "b")
+		assert.Contains(t, cfgs, "c")
+	})
+
 	t.Run("UpdateScrapeConfig", func(t *testing.T) {
 		tests := []struct {
 			name     string
@@ -74,13 +101,7 @@ func TestGrafanaAgentConfigManager(t *testing.T) {
 				defer server.Close()
 
 				err := sut.UpdateScrapeConfig(cfg)
-				assert.Equal(t, *path, "/agent/api/v1/config/dummy")
-
-				if tt.expected != nil {
-					require.EqualError(t, err, tt.expected.Error())
-				} else {
-					require.NoError(t, err)
-				}
+				assertResponse(t, path, "/agent/api/v1/config/dummy", tt.expected, err)
 			})
 		}
 	})
@@ -105,14 +126,18 @@ func TestGrafanaAgentConfigManager(t *testing.T) {
 				defer server.Close()
 
 				err := sut.DeleteScrapeConfig(cfg)
-				assert.Equal(t, *path, "/agent/api/v1/config/dummy")
-
-				if tt.expected != nil {
-					require.EqualError(t, err, tt.expected.Error())
-				} else {
-					require.NoError(t, err)
-				}
+				assertResponse(t, path, "/agent/api/v1/config/dummy", tt.expected, err)
 			})
 		}
 	})
+}
+
+func assertResponse(t *testing.T, path *string, expectedPath string, expected, err error) {
+	assert.Equal(t, *path, expectedPath)
+
+	if expected != nil {
+		require.EqualError(t, err, expected.Error())
+	} else {
+		require.NoError(t, err)
+	}
 }

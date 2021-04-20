@@ -2,6 +2,7 @@ package operator
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -14,6 +15,8 @@ import (
 )
 
 type ConfigManager interface {
+	ListScrapeConfigs() ([]string, error)
+
 	UpdateScrapeConfig(cfg *instance.Config) error
 	DeleteScrapeConfig(cfg *instance.Config) error
 }
@@ -36,6 +39,39 @@ func NewGrafanaAgentConfigManager(apiRoot string) *grafanaAgentConfigManager {
 
 func (g *grafanaAgentConfigManager) route(cfg *instance.Config) string {
 	return fmt.Sprintf("%s/agent/api/v1/config/%s", g.apiRoot, url.PathEscape(cfg.Name))
+}
+
+func (g *grafanaAgentConfigManager) ListScrapeConfigs() ([]string, error) {
+	type listResponse struct {
+		Status string `json:"status"`
+		Data   struct {
+			Configs []string `json:"configs"`
+		} `json:"data"`
+	}
+
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/agent/api/v1/configs", g.apiRoot), nil)
+	if err != nil {
+		return nil, fmt.Errorf("ListScrapeConfigs: make request: %w", err)
+	}
+
+	g.log.Debug("Listing ScrapeConfigs")
+	resp, err, dispose := httputil.MakeDisposer(g.c.Do(req))
+	defer dispose()
+
+	if err != nil {
+		return nil, fmt.Errorf("ListScrapeConfigs: failed to list: %w", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("ListScrapeConfigs: unexpected status code: %s", resp.Status)
+	}
+
+	payload := listResponse{}
+	if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
+		return nil, fmt.Errorf("ListScrapeConfigs: unmarshal response: %w", err)
+	}
+
+	return payload.Data.Configs, nil
 }
 
 func (g *grafanaAgentConfigManager) UpdateScrapeConfig(cfg *instance.Config) error {
@@ -104,6 +140,10 @@ type noopConfigManager struct{}
 
 func NewNoOpConfigManager() *noopConfigManager {
 	return &noopConfigManager{}
+}
+
+func (n *noopConfigManager) ListScrapeConfigs() ([]string, error) {
+	return nil, nil
 }
 
 func (n *noopConfigManager) UpdateScrapeConfig(_ *instance.Config) error {

@@ -16,6 +16,12 @@ local agent_objects = agent.new(namespace='monitoring') +
                         _images+:: {
                           agent: 'grafana/agent:v0.13.0',
                         },
+
+                        service+: {
+                          spec+: {
+                            type: 'NodePort',
+                          },
+                        },
                       } +
                       agent.withConfigMixin({
                         local kvstore = {
@@ -72,6 +78,12 @@ local grafana_objects = grafana.new(namespace='monitoring') +
                         {
                           _images+:: {
                             grafana: 'grafana/grafana:7.4.3',
+                          },
+
+                          service+: {
+                            spec+: {
+                              type: 'NodePort',
+                            },
                           },
                         };
 
